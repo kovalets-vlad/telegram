@@ -5,7 +5,6 @@ import aiohttp
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from dotenv import load_dotenv
-from aiohttp_socks import ProxyConnector
 import datetime
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
@@ -62,7 +61,7 @@ async def get_current_weather(city: str, lat, lon) -> str:
                 f"☁ {desc}"
             )
         
-async def get_hourly_weather(city, lat, lon, hours=6):
+async def get_hourly_weather(city, lat, lon, hours=1):
     url = f"https://api.openweathermap.org/data/2.5/forecast"
     params = {
         "lat": lat,
@@ -148,8 +147,7 @@ async def cmd_hourly(message: types.Message):
         await message.answer("❌ Не знайшов такого міста.")
         return
     
-    hours = int(args[2]) if len(args) > 2 else 6  
-    report = await get_hourly_weather(city, lat, lon, hours)
+    report = await get_hourly_weather(city, lat, lon)
     await message.answer(report)
 
 
@@ -179,7 +177,7 @@ async def cmd_weather(message: types.Message):
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🌡 Поточна", callback_data=f"current:{city}:{lat}:{lon}")],
-        [InlineKeyboardButton(text="📅 Прогноз на день погодинно", callback_data=f"hourly:{city}:{lat}:{lon}:5")]
+        [InlineKeyboardButton(text="📅 Прогноз на день погодинно", callback_data=f"hourly:{city}:{lat}:{lon}:1")]
         [InlineKeyboardButton(text="📅 Прогноз на 5 днів", callback_data=f"daily:{city}:{lat}:{lon}:5")]
     ])
 
@@ -188,9 +186,7 @@ async def cmd_weather(message: types.Message):
 # ===================== MAIN =====================
 
 async def main():
-    connector = ProxyConnector.from_url("socks5://197.156.240.66:5678")
-
-    bot = Bot(token=API_TOKEN, connector=connector)
+    bot = Bot(token=API_TOKEN)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
